@@ -1,7 +1,6 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+
 const router = express.Router();
 const connectToDatabase = require("../models/db");
 const logger = require("../logger");
@@ -16,7 +15,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname); // Use the original file name
-  },
+  }
 });
 
 const upload = multer({ storage: storage });
@@ -53,12 +52,12 @@ router.post("/", upload.single("image"), async (req, res, next) => {
     const item = req.body;
     item.id = (lastId + 1).toString();
 
-    const date_added = Math.floor(new Date().getTime() / 1000);
-    item.date_added = date_added;
+    const dateAdded = Math.floor(new Date().getTime() / 1000);
+    item.date_added = dateAdded;
 
     const secondChanceItem = await collection.insertOne(item);
 
-    res.status(201).json(item);
+    res.status(201).json(secondChanceItem);
   } catch (e) {
     next(e);
   }
