@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { validationResult, body } = require("express-validator");
 
 const router = express.Router();
 const connectToDatabase = require("../models/db");
@@ -35,11 +36,11 @@ router.post("/register", async (req, res, next) => {
         id: newUser.insertedId,
       },
     };
-    const authToken = jwt.sign(payload, JWT_SECRET);
+    const authtoken = jwt.sign(payload, JWT_SECRET);
 
     logger.info("User created successfully");
 
-    res.status(201).json({ authToken, email: req.body.email });
+    res.status(201).json({ authtoken, email: req.body.email });
   } catch (e) {
     next(e);
   }
@@ -70,11 +71,47 @@ router.post("/login", async (req, res) => {
         id: user._id,
       },
     };
-    const authToken = jwt.sign(payload, JWT_SECRET);
+    const authtoken = jwt.sign(payload, JWT_SECRET);
 
     logger.info("User logged in successfully");
 
-    res.json({ authToken, userName: user.name, userEmail: user.email });
+    res.json({ authtoken, userName: user.name, userEmail: user.email });
+  } catch (e) {
+    return res.status(500).send("Internal server error");
+  }
+});
+
+router.put("/update", async (req, res) => {
+  try {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const db = await connectToDatabase();
+    const collection = db.collection("users");
+
+    const existingUser = await collection.findOne({ email: req.body.email });
+
+    existingUser.firstName = req.body.name;
+    existingUser.updatedAt = new Date();
+
+    await collection.updateOne(
+      { email: req.body.email },
+      { $set: existingUser },
+      { returnDocument: "after" }
+    );
+
+    const payload = {
+      user: {
+        id: existingUser._id,
+      },
+    };
+
+    const authtoken = jwt.sign(payload, JWT_SECRET);
+
+    res.json({ authtoken });
   } catch (e) {
     return res.status(500).send("Internal server error");
   }
