@@ -14,6 +14,7 @@ function MainPage() {
         const fetchItems = async () => {
             try {
                 let url = `${urlConfig.backendUrl}/api/secondchance/items`
+                console.log(url);
                 const response = await fetch(url);
                 if (!response.ok) {
                     //something went wrong

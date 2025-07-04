@@ -27,6 +27,7 @@ router.post("/register", async (req, res, next) => {
     const user = {
       email: req.body.email,
       password: hashedPassword,
+      ...req.body,
     };
 
     const newUser = await collection.insertOne(user);
@@ -94,7 +95,7 @@ router.put("/update", async (req, res) => {
 
     const existingUser = await collection.findOne({ email: req.body.email });
 
-    existingUser.firstName = req.body.name;
+    existingUser.name = req.body.name;
     existingUser.updatedAt = new Date();
 
     await collection.updateOne(
